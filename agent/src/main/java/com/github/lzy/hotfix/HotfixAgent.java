@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.Instrumentation;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 /**
  * @author liuzhengyang
@@ -21,8 +22,8 @@ public class HotfixAgent {
         }
         System.out.println("Current Class loader " + HotfixAgent.class.getClassLoader());
         String className = splits[0];
-        String replaceTargetClassFile = splits[1];
         Class<?> clazz = findTargetClass(className, instrumentation);
+        String replaceTargetClassFile = splits[1];
         File file = Paths.get(replaceTargetClassFile).toFile();
         try (InputStream inputStream = new FileInputStream(file)) {
             byte[] newClazzByteCode = new byte[inputStream.available()];
@@ -35,6 +36,7 @@ public class HotfixAgent {
     private static Class<?> findTargetClass(String className, Instrumentation instrumentation) {
         Class[] allLoadedClasses = instrumentation.getAllLoadedClasses();
         for (Class<?> clazz : allLoadedClasses) {
+            System.out.println("Class {} " + clazz + " " + clazz.getClassLoader());
             if (className.equals(clazz.getCanonicalName())) {
                 System.out.println("Found class " + clazz + " class loader " + clazz.getClassLoader());
                 return clazz;
