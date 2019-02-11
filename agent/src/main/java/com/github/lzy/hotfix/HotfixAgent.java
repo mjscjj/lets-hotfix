@@ -7,8 +7,6 @@ import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.Instrumentation;
 import java.nio.file.Paths;
 
-import sun.misc.ClassLoaderUtil;
-
 /**
  * @author liuzhengyang
  */
