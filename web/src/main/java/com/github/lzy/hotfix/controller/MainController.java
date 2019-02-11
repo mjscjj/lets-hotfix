@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,11 +28,14 @@ import com.sun.tools.attach.VirtualMachineDescriptor;
 public class MainController {
     private static final Logger logger = LoggerFactory.getLogger(MainController.class);
 
+    @Value("${agent.path}")
+    private String agentPath;
+
     @RequestMapping("")
     public String main(Model model) {
         List<VirtualMachineDescriptor> list = VirtualMachine.list();
         List<JvmProcess> processList = list.stream()
-                .map(desc -> new JvmProcess(desc))
+                .map(JvmProcess::new)
                 .collect(Collectors.toList());
         model.addAttribute("processList", processList);
         return "main";
@@ -41,12 +45,11 @@ public class MainController {
     @ResponseBody
     public String hotfix(@RequestParam("file") MultipartFile file,
             @RequestParam("targetPid") String targetPid,
-            @RequestParam("agentPath") String agentPath,
             @RequestParam("targetClass") String targetClass
     ) throws Exception {
         VirtualMachine attach = VirtualMachine.attach(targetPid);
         Path replaceClassFile = Files.write(Paths.get("/tmp/" + targetClass), file.getBytes(),
-                StandardOpenOption.CREATE);
+                StandardOpenOption.CREATE, StandardOpenOption.WRITE);
         logger.info("Save replace class file to {}", replaceClassFile);
         String agentArgs = String.join(",", targetClass,
                 replaceClassFile.toFile().getAbsolutePath());
@@ -54,6 +57,7 @@ public class MainController {
             attach.loadAgent(agentPath, agentArgs);
         } finally {
             attach.detach();
+            replaceClassFile.toFile().delete();
         }
         return "ok";
     }

@@ -52,10 +52,6 @@
                 <td><input type="text" name="targetClass"/></td>
             </tr>
             <tr>
-                <td>agentPath</td>
-                <td><input type="text" name="agentPath"/></td>
-            </tr>
-            <tr>
                 <td></td>
                 <td><input type="submit" value="Upload"/></td>
             </tr>
