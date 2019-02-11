@@ -19,6 +19,7 @@ public class HotfixAgent {
         if (splits.length < 2){
             throw new IllegalArgumentException(agentArgs);
         }
+        System.out.println("Current Class loader " + HotfixAgent.class.getClassLoader());
         String className = splits[0];
         String replaceTargetClassFile = splits[1];
         Class<?> clazz = Class.forName(className);
