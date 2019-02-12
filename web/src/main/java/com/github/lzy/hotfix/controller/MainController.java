@@ -41,6 +41,11 @@ public class MainController {
         return "main";
     }
 
+    public static void main(String[] args) {
+        List<VirtualMachineDescriptor> list = VirtualMachine.list();
+        list.forEach(System.out::println);
+    }
+
     @RequestMapping("/hotfix")
     @ResponseBody
     public String hotfix(@RequestParam("file") MultipartFile file,
