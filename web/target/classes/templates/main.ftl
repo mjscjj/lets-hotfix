@@ -18,8 +18,8 @@
 </head>
 <body>
 
-<h5>${hostname}</h5>
-<h5>${hostIp}</h5>
+<h5>${hostname!""}</h5>
+<h5>${hostIp!""}</h5>
 <div>
 
 <form method="post" enctype="multipart/form-data" id="reloadForm">
@@ -82,6 +82,7 @@
                 cache: false,
                 success: function (data) {
                     console.log('result ' + data)
+                    alert('恭喜！reload成功');
                 }
             });
             return false;
