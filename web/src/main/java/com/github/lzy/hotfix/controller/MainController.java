@@ -1,5 +1,7 @@
 package com.github.lzy.hotfix.controller;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,12 +34,14 @@ public class MainController {
     private String agentPath;
 
     @RequestMapping("")
-    public String main(Model model) {
+    public String main(Model model) throws UnknownHostException {
         List<VirtualMachineDescriptor> list = VirtualMachine.list();
         List<JvmProcess> processList = list.stream()
                 .map(JvmProcess::new)
                 .collect(Collectors.toList());
         model.addAttribute("processList", processList);
+        model.addAttribute("hostname", InetAddress.getLocalHost().getHostName());
+        model.addAttribute("hostIp", InetAddress.getLocalHost().getHostAddress());
         return "main";
     }
 
