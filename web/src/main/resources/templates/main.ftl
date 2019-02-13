@@ -82,6 +82,7 @@
                 cache: false,
                 success: function (data) {
                     console.log('result ' + data)
+                    alert('恭喜！reload成功');
                 }
             });
             return false;
