@@ -4,9 +4,12 @@ import static com.github.lzy.hotfix.util.VMUtils.getVmArgs;
 
 import com.sun.tools.attach.VirtualMachineDescriptor;
 
+import lombok.NoArgsConstructor;
+
 /**
  * @author liuzhengyang
  */
+@NoArgsConstructor
 public class JvmProcess {
     private String pid;
     private String displayName;
