@@ -22,40 +22,33 @@
         #container {
             margin-top: 10px;
         }
-
         .content {
             margin-top: 1em;
             padding-top: 1em;
             border-top: 1px dashed #aaa;
             border-bottom: 1px dashed #aaa;
         }
-
         .reload {
             width: 100%;
             margin-top: 1em;
             text-align: center;
         }
-
         .load-wrapper {
             margin-top: 1em;
             width: 100%;
             text-align: center;
             line-height: 2.5em;
         }
-
         .btn-reload {
             float: left;
         }
-
         #reloadProcess {
             float: right;
         }
-
         .bootstrap-select .dropdown-menu.inner {
             width: 100px;
             padding-bottom: 1em;
         }
-
         .dropdown-menu.show {
             display: inline-grid;
         }
@@ -67,15 +60,13 @@
 
 <div class="container" id="container">
     <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
-                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            ${hostname!""}
-        </button>
-        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <select id="hostNameSelector" data-style="btn-secondary" class="selectpicker" data-live-search="true">
             <#list instances as instance>
-                <a class="dropdown-item" href="${instance.homePageUrl}">${instance.hostName}</a>
+                <option value="${instance.homePageUrl}"
+                        <#if instance.hostName == hostname>selected</#if>>${instance.hostName}</option>
             </#list>
-        </div>
+        </select>
+
         <a href="https://github.com/liuzhengyang/lets-hotfix" class="github-corner"
            aria-label="View source on GitHub">
             <svg
@@ -93,7 +84,6 @@
         <style>.github-corner:hover .octo-arm {
                 animation: octocat-wave 560ms ease-in-out
             }
-
             @keyframes octocat-wave {
                 0%, 100% {
                     transform: rotate(0)
@@ -105,12 +95,10 @@
                     transform: rotate(10deg)
                 }
             }
-
             @media (max-width: 500px) {
                 .github-corner:hover .octo-arm {
                     animation: none
                 }
-
                 .github-corner .octo-arm {
                     animation: octocat-wave 560ms ease-in-out
                 }
@@ -164,9 +152,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.2/js/bootstrap-select.min.js"></script>
 <script>
     $(function () {
-
         $('.selectpicker').selectpicker();
-
+        $("#hostNameSelector").on("loaded.bs.select", function () {
+            console.log("loaded ");
+            reloadProcessList();
+        });
+        $("#hostNameSelector").on("changed.bs.select", function (e, clickedIndex, isSelected, previousValue) {
+            console.log("loaded ");
+            reloadProcessList();
+        });
         $('#reloadForm').on('submit', function (e) {
             e.preventDefault();
             var form = $("#reloadForm")[0];
@@ -174,7 +168,12 @@
             data.append('file', $("#file")[0].files[0])
             // if the validator does not prevent form submit
             var url = "/hotfix";
-
+            var hostname = "${hostname}";
+            console.log("Selected " + $("#hostNameSelector").val());
+            if (!$("#hostNameSelector").val().toLowerCase().includes(hostname.toLowerCase())) {
+                console.log("Not Equals " + hostname + " " + $("#hostNameSelector").val())
+                data.append("proxyServer", $("#hostNameSelector").val())
+            }
             $("#result").html("")
             $("#loading-status").attr("style", "visibility:visible");
             $("#reloadButton").attr("disabled", "true");
@@ -202,12 +201,20 @@
             });
             return false;
         });
-
         $("#reloadProcess").click(function () {
-            $.get('/processList', function (data) {
+            reloadProcessList();
+        });
+        function reloadProcessList() {
+            var data = {};
+            var hostname = "${hostname}";
+            if (!$("#hostNameSelector").val().toLowerCase().includes(hostname.toLowerCase())) {
+                console.log("Not Equals " + hostname + " " + $("#hostNameSelector").val())
+                data.proxyServer=$("#hostNameSelector").val();
+            };
+            $.get('/processList', data, function (data) {
                 console.log("process list " + data);
                 $("#targetPid").children().remove();
-                data.forEach(function (process) {
+                data['data'].forEach(function (process) {
                     console.log("process append " + process);
                     $("#targetPid").append("<option value=" + process.pid + ">" + process
                             .pid + ' ' + process.displayName + ' ' + process.detailVmArgs +
@@ -215,7 +222,7 @@
                 });
                 $('.selectpicker').selectpicker('refresh');
             })
-        });
+        }
     });
 </script>
 
