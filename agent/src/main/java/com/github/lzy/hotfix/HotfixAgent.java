@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.Instrumentation;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -37,22 +38,23 @@ public class HotfixAgent {
             byte[] newClazzByteCode = new byte[inputStream.available()];
             inputStream.read(newClazzByteCode);
             Class<?> clazz = findTargetClass(className, instrumentation);
-            instrumentation.redefineClasses(new ClassDefinition(clazz, newClazzByteCode));
-            hotfixLogger.info("Redefine done " + clazz);
+            if (clazz == null) {
+                hotfixLogger.info("Class " + className + " not found");
+            } else {
+                instrumentation.redefineClasses(new ClassDefinition(clazz, newClazzByteCode));
+                hotfixLogger.info("Redefine done " + clazz);
+            }
         }
     }
 
     private static Class<?> findTargetClass(String className, Instrumentation instrumentation) {
         return classCache.computeIfAbsent(className, clazzName -> {
             Class[] allLoadedClasses = instrumentation.getAllLoadedClasses();
-            for (Class<?> clazz : allLoadedClasses) {
-                hotfixLogger.info("Finding Class " + clazz + ' ' + clazz.getClassLoader());
-                if (clazzName.equals(clazz.getCanonicalName())) {
-                    hotfixLogger.info("Found class " + clazz + " class loader " + clazz.getClassLoader());
-                    return clazz;
-                }
-            }
-            return null;
+            return Arrays.stream(allLoadedClasses)
+                    .parallel()
+                    .filter(klass -> clazzName.equals(klass.getCanonicalName()))
+                    .findFirst()
+                    .orElse(null);
         });
     }
 }
