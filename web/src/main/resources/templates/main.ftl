@@ -188,19 +188,28 @@
                 cache: false,
                 success: function (data) {
                     console.log('result ' + data)
-                    $("#loading-status").attr("style", "visibility:hidden");
-                    $("#reloadButton").removeAttr("disabled");
-                    $("#result").html("恭喜！reload成功!")
+                    var code = data.code;
+                    if (code !== 0) {
+                        console.log('error ' + e)
+                        resetReloadStatus();
+                        $("#result").html("Oops, 出错了，请查看具体错误~" + data.msg)
+                    } else {
+                        resetReloadStatus();
+                        $("#result").html("恭喜！reload " + data.data.targetClass + "成功!")
+                    }
                 },
                 error: function (e) {
                     console.log('error ' + e)
-                    $("#loading-status").attr("style", "visibility:hidden");
-                    $("#reloadButton").removeAttr("disabled");
-                    $("#result").html("Oops, 出错了，请查看具体错误~")
+                    resetReloadStatus();
+                    $("#result").html("Oops, 出错了，请查看具体错误~" + e)
                 }
             });
             return false;
         });
+        function resetReloadStatus() {
+            $("#loading-status").attr("style", "visibility:hidden");
+            $("#reloadButton").removeAttr("disabled");
+        }
         $("#reloadProcess").click(function () {
             reloadProcessList();
         });

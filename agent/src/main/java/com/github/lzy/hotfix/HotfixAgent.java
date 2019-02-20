@@ -2,9 +2,12 @@ package com.github.lzy.hotfix;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.Instrumentation;
+import java.lang.instrument.UnmodifiableClassException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Map;
@@ -22,7 +25,8 @@ public class HotfixAgent {
     // FIXME multi classes of different classloader ?
     private static Map<String, Class<?>> classCache = new ConcurrentHashMap<>();
 
-    public static void agentmain(String agentArgs, Instrumentation instrumentation) throws Exception {
+    public static void agentmain(String agentArgs, Instrumentation instrumentation)
+            throws IOException, UnmodifiableClassException, ClassNotFoundException {
         if (agentArgs == null) {
             throw new IllegalArgumentException(agentArgs);
         }
@@ -47,7 +51,8 @@ public class HotfixAgent {
         }
     }
 
-    private static Class<?> findTargetClass(String className, Instrumentation instrumentation) {
+    //@VisibleForTest
+    static Class<?> findTargetClass(String className, Instrumentation instrumentation) {
         return classCache.computeIfAbsent(className, clazzName -> {
             Class[] allLoadedClasses = instrumentation.getAllLoadedClasses();
             return Arrays.stream(allLoadedClasses)
