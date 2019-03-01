@@ -2,7 +2,6 @@ package com.github.lzy.hotfix.controller;
 
 import static java.util.stream.Collectors.toList;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collections;
@@ -11,6 +10,7 @@ import java.util.Optional;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -24,6 +24,7 @@ import com.github.lzy.hotfix.model.HotfixResult;
 import com.github.lzy.hotfix.model.JvmProcess;
 import com.github.lzy.hotfix.model.Result;
 import com.github.lzy.hotfix.proxy.AgentProxyClient;
+import com.github.lzy.hotfix.proxy.AgentWebClient;
 import com.github.lzy.hotfix.service.HotfixService;
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.EurekaClient;
@@ -32,6 +33,7 @@ import com.netflix.discovery.shared.Application;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
+import reactor.core.publisher.Mono;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
@@ -50,6 +52,9 @@ public class MainController {
     @Resource
     private HotfixService hotfixService;
 
+    @Resource
+    private AgentWebClient agentWebClient;
+
     @RequestMapping("/")
     public String main(Model model) throws UnknownHostException {
         model.addAttribute("processList", hotfixService.getProcessList());
@@ -63,12 +68,12 @@ public class MainController {
 
     @RequestMapping("/processList")
     @ResponseBody
-    public Result<List<JvmProcess>> processList(@RequestParam(value = "proxyServer",
-            required = false) String proxyServer) throws IOException {
-        if (proxyServer != null && !proxyServer.isEmpty()) {
-            return getProxyClient(proxyServer).getJvmProcess().execute().body();
-        }
-        return Result.success(hotfixService.getProcessList());
+    public Mono<Result<List<JvmProcess>>> processFlux(@RequestParam(value = "proxyServer",
+            required = false) String proxyServer) {
+        return Mono.justOrEmpty(proxyServer)
+                .filter(StringUtils::isNotEmpty)
+                .flatMap(proxy -> agentWebClient.getJvmProcess(proxy))
+                .switchIfEmpty(Mono.fromCallable(() -> Result.success(hotfixService.getProcessList())));
     }
 
     @RequestMapping("/hostList")
