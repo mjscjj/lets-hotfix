@@ -1,5 +1,7 @@
 package com.github.lzy.hotfix.controller;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -67,6 +69,17 @@ public class MainController {
             return getProxyClient(proxyServer).getJvmProcess().execute().body();
         }
         return Result.success(hotfixService.getProcessList());
+    }
+
+    @RequestMapping("/hostList")
+    @ResponseBody
+    public Result<List<String>> hostList() {
+        Application application = eurekaClient.getApplication(APPLICATION_NAME);
+        List<InstanceInfo> instances = Optional.ofNullable(application)
+                .map(Application::getInstances)
+                .orElse(Collections.emptyList());
+        List<String> hostNames = instances.stream().map(InstanceInfo::getHostName).collect(toList());
+        return Result.success(hostNames);
     }
 
     @RequestMapping("/hotfix")
