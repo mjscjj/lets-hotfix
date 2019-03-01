@@ -14,8 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
@@ -49,9 +49,8 @@ public class MainController {
     @Resource
     private AgentWebClient agentWebClient;
 
-    @RequestMapping("/")
+    @GetMapping("/")
     public String main(Model model) throws UnknownHostException {
-        model.addAttribute("processList", hotfixService.getProcessList());
         model.addAttribute("hostname", InetAddress.getLocalHost().getHostName());
         Application application = eurekaClient.getApplication(APPLICATION_NAME);
         List<InstanceInfo> instances = Optional.ofNullable(application)
@@ -60,7 +59,7 @@ public class MainController {
         return "main";
     }
 
-    @RequestMapping("/processList")
+    @GetMapping("/processList")
     @ResponseBody
     public Mono<Result<List<JvmProcess>>> processFlux(@RequestParam(value = "proxyServer",
             required = false) String proxyServer) {
@@ -69,15 +68,15 @@ public class MainController {
                 .switchIfEmpty(Mono.fromCallable(() -> Result.success(hotfixService.getProcessList())));
     }
 
-    @RequestMapping("/hostList")
+    @GetMapping("/hostList")
     @ResponseBody
-    public Result<List<String>> hostList() {
-        Application application = eurekaClient.getApplication(APPLICATION_NAME);
-        List<InstanceInfo> instances = Optional.ofNullable(application)
-                .map(Application::getInstances)
-                .orElse(Collections.emptyList());
-        List<String> hostNames = instances.stream().map(InstanceInfo::getHostName).collect(toList());
-        return Result.success(hostNames);
+    public Mono<Result<List<String>>> hostList() {
+        return Mono.justOrEmpty(eurekaClient.getApplication(APPLICATION_NAME))
+                .flatMapIterable(Application::getInstances)
+                .map(InstanceInfo::getHostName)
+                .collect(toList())
+                .defaultIfEmpty(Collections.emptyList())
+                .map(Result::success);
     }
 
     @PostMapping("/hotfix")

@@ -116,9 +116,6 @@
                         data-live-search="true"
                         form="reloadForm">
                     <option>Choose...</option>
-                    <#list processList as process>
-                        <option value="${process.pid}">${process.pid} ${process.displayName} ${process.detailVmArgs}</option>
-                    </#list>
                 </select>
                 <button id="reloadProcess" type="button" class="btn
                 btn-secondary">RefreshProcess</button>
