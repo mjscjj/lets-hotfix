@@ -73,7 +73,7 @@ public class MainController {
     public Mono<Result<List<String>>> hostList() {
         return Mono.justOrEmpty(eurekaClient.getApplication(APPLICATION_NAME))
                 .flatMapIterable(Application::getInstances)
-                .map(InstanceInfo::getHostName)
+                .map(app -> String.join(":", app.getHostName(), String.valueOf(app.getPort())))
                 .collect(toList())
                 .defaultIfEmpty(Collections.emptyList())
                 .map(Result::success);
