@@ -11,17 +11,32 @@ import net.bytebuddy.agent.ByteBuddyAgent;
 public class HotfixAgentTest {
 
     @Test
-    public void findTargetClass() throws Exception {
-        DummyService dummyService = new DummyService();
+    public void findStaticInnerClass() throws Exception {
+        DummyStaticInnerService dummyService = new DummyStaticInnerService();
         Instrumentation instrumentation = ByteBuddyAgent.install();
-        Class<?> targetClass = HotfixAgent.findTargetClass("com.github.lzy.hotfix.HotfixAgentTest.DummyService", instrumentation);
+        Class<?> targetClass = HotfixAgent.findTargetClass("com.github.lzy.hotfix.HotfixAgentTest$DummyStaticInnerService", instrumentation);
         assertNotNull(targetClass);
         assertEquals(targetClass, dummyService.getClass());
     }
 
-    static class DummyService {
+    @Test
+    public void findStaticClass() {
+        DummyStaticOuterService dummyService = new DummyStaticOuterService();
+        Instrumentation instrumentation = ByteBuddyAgent.install();
+        Class<?> targetClass = HotfixAgent.findTargetClass("com.github.lzy.hotfix.DummyStaticOuterService", instrumentation);
+        assertNotNull(targetClass);
+        assertEquals(targetClass, dummyService.getClass());
+    }
+
+    static class DummyStaticInnerService {
         public String foo() {
             return "foo";
         }
+    }
+}
+
+class DummyStaticOuterService {
+    public String foo() {
+        return "foo";
     }
 }
