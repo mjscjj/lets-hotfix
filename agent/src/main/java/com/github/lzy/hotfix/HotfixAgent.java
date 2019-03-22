@@ -57,7 +57,7 @@ public class HotfixAgent {
             Class[] allLoadedClasses = instrumentation.getAllLoadedClasses();
             return Arrays.stream(allLoadedClasses)
                     .parallel()
-                    .filter(klass -> clazzName.equals(klass.getCanonicalName()))
+                    .filter(klass -> clazzName.equals(klass.getName()))
                     .findFirst()
                     .orElse(null);
         });
