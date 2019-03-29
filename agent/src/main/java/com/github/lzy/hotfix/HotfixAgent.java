@@ -8,6 +8,8 @@ import java.io.InputStream;
 import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Map;
@@ -42,6 +44,23 @@ public class HotfixAgent {
             byte[] newClazzByteCode = new byte[inputStream.available()];
             inputStream.read(newClazzByteCode);
             Class<?> clazz = findTargetClass(className, instrumentation);
+            if (clazz == null) {
+                ClassLoader classLoader = HotfixAgent.class.getClassLoader();
+                try {
+                    Method defineClass = ClassLoader.class.getMethod("defineClass", String.class, byte[].class, int.class,
+                            int.class);
+                    defineClass.setAccessible(true);
+                    clazz = (Class<?>) defineClass.invoke(classLoader, className, newClazzByteCode
+                            , 0, newClazzByteCode.length);
+                    hotfixLogger.info("Class " + className + " define success " + clazz);
+                } catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+            }
             if (clazz == null) {
                 hotfixLogger.info("Class " + className + " not found");
             } else {
