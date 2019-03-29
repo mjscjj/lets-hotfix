@@ -47,8 +47,8 @@ public class HotfixAgent {
             if (clazz == null) {
                 ClassLoader classLoader = HotfixAgent.class.getClassLoader();
                 try {
-                    Method defineClass = ClassLoader.class.getMethod("defineClass", String.class, byte[].class, int.class,
-                            int.class);
+                    Method defineClass = ClassLoader.class.getDeclaredMethod("defineClass", String.class,
+                            byte[].class, int.class, int.class);
                     defineClass.setAccessible(true);
                     clazz = (Class<?>) defineClass.invoke(classLoader, className, newClazzByteCode
                             , 0, newClazzByteCode.length);
