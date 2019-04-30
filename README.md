@@ -5,5 +5,4 @@ Class hot reload for java
 
 
 ----
-![hotfix1](./docs/screenshots/screenshot1.png)
-![hotfix2](./docs/screenshots/screenshot2.png)
+![hotfix_use_local.gif](./docs/screenshots/hotfix_use_local.gif)
